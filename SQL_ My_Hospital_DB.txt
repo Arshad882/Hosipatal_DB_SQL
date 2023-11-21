@@ -1,0 +1,155 @@
+USE My_Hospital_DB
+
+-- Create the Patient Table and set Primary Key with Auto Identity starting at 1 and incrementing by 1
+CREATE TABLE Patient(
+	Patient_Number int identity (1,1) NOT NULL,
+	Patient_First_Name varchar(50),
+	Patient_Middle_Name varchar(50),
+	Patient_Last_Name varchar(50),
+	Patient_Age int identity (1,1) NOT NULL,
+	Street_Address varchar(100),
+	City_Address varchar(80),
+	State_Address varchar(80),
+	-- Allow for Business Zip Codes
+	Zip_Address varchar(15),
+	CONSTRAINT PK_Patient PRIMARY KEY (Patient_Number)
+);
+
+CREATE TABLE Insurance_Company(
+	Company_ID int identity (1,1) NOT NULL,
+	Company_Name varchar(50),
+	Telephone varchar(15),
+	City_Address varchar(80),
+	State_Address varchar(80),
+	-- Allow for Business Zip Codes
+	Zip_Address varchar(15),
+	CONSTRAINT PK_Insurance_Company PRIMARY KEY (Company_ID)
+	
+);
+CREATE TABLE Claim(
+	Claim_number int NOT NULL,
+	Company_ID int NOT NULL,
+	Patient_Number int NOT NULL,
+	Diagnosis varchar(50) NOT NULL,
+	Amount decimal(5,2) NOT NULL,
+	CONSTRAINT PK_Claim PRIMARY KEY(Claim_number),
+	CONSTRAINT FK_Claim_Insurance_Company FOREIGN KEY(Company_ID) REFERENCES Insurance_Company(Company_ID),
+	CONSTRAINT FK_Claim_Patient FOREIGN KEY(Patient_Number) REFERENCES Patient(Patient_Number)
+);
+
+CREATE TABLE Department(
+	Department_Number int identity(1,1) NOT NULL,
+	Office_Number int NULL,
+	Telephone varchar(15),
+	CONSTRAINT PK_Department PRIMARY KEY(Department_Number)
+);
+
+CREATE TABLE Certifications(
+	Certification_ID varchar (50) NOT NULL,
+	Certification varchar (50) NOT NULL,
+	Organization varchar(15) NOT NULL,
+	CONSTRAINT PK_Certifications PRIMARY KEY(Certification_ID)
+);
+
+
+CREATE TABLE Nurse(
+	Nurse_ID int  NOT NULL,
+	Nurse_First_name varchar(50) NOT NULL,
+	Nurse_Last_name varchar(50) NOT NULL,
+	Certification varchar(50) NULL,
+	Year_Hired int  NULL,
+	Superviser int  NOT NULL,
+	Department_number int NULL,
+	CONSTRAINT PK_Nurse PRIMARY KEY(Nurse_ID),
+	CONSTRAINT FK_Nurse_Certifications FOREIGN KEY (Certification) REFERENCES Certifications(Certification_ID),
+	CONSTRAINT FK_Nurse_Department FOREIGN KEY (Department_number) REFERENCES Department(Department_number),
+	CONSTRAINT FK_Nurse_Nurse1 FOREIGN KEY(Superviser) REFERENCES Nurse(Nurse_ID),
+
+	);
+
+CREATE TABLE Doctor(
+	Doctor_ID int identity(1,1) NOT NULL,
+	Doctor_First_name varchar(50) NOT NULL,
+	Doctor_Last_name varchar(50) NOT NULL,
+	Office_Number int  NULL,
+	Telephone varchar(15),
+	Backup_DoctorID int NULL,
+	Department_Number int NULL,
+	CONSTRAINT PK_Doctor PRIMARY KEY(Doctor_ID),
+	CONSTRAINT FK_Doctor_Department FOREIGN KEY (Department_Number) REFERENCES Department(Department_Number),
+	CONSTRAINT FK_Doctor_Backup FOREIGN KEY (Backup_DoctorID) REFERENCES Doctor(Doctor_ID)
+
+	);
+
+CREATE TABLE [dbo].[Degree](
+	[Doctor_ID] [int] NOT NULL,
+	[Degree_Type] [varchar](50) NOT NULL,
+	[Major] [varchar](50) NOT NULL,
+	[University] [varchar](50) NOT NULL,
+	[Year] [int] NOT NULL,
+ CONSTRAINT [PK_degree] PRIMARY KEY CLUSTERED 
+(
+	[Doctor_ID] ASC,
+	[Degree_Type] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Degree]  WITH CHECK ADD  CONSTRAINT [FK_Doctor_number] FOREIGN KEY([Doctor_ID])
+REFERENCES [dbo].[Doctor] ([Doctor_ID])
+GO
+
+ALTER TABLE [dbo].[Degree] CHECK CONSTRAINT [FK_Doctor_number]
+GO
+
+
+CREATE TABLE Operation_Type(
+	Operation_Name varchar (10) NOT NULL,
+	-- Number of hours and minutes of Operation. INSERTED as partial number 1.5 = 1 hour 30 min.
+	Duration decimal(2,2),
+	Cost decimal(5,2),
+	CONSTRAINT PK_Operation_Type PRIMARY KEY(Operation_Name)
+	
+);
+
+
+CREATE TABLE [dbo].[Operation](
+	[Patient_Number] [int] NOT NULL,
+	[Doctor_ID] [int] NOT NULL,
+	[Operation_Name] [varchar](10) NOT NULL,
+	[OP_Date] [date] NOT NULL,
+	[Start_time] [time](7) NOT NULL,
+	[End_time] [time](7) NOT NULL,
+	[Operating_Room_NO] [int] NOT NULL,
+ CONSTRAINT [pk_operation] PRIMARY KEY CLUSTERED 
+(
+	[Patient_Number] ASC,
+	[Doctor_ID] ASC,
+	[Operation_Name] ASC,
+	[OP_Date] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Operation]  WITH CHECK ADD  CONSTRAINT [fk_operation_name] FOREIGN KEY([Operation_Name])
+REFERENCES [dbo].[Operation_Type] ([Operation_Name])
+GO
+
+ALTER TABLE [dbo].[Operation] CHECK CONSTRAINT [fk_operation_name]
+GO
+
+ALTER TABLE [dbo].[Operation]  WITH CHECK ADD  CONSTRAINT [fk_patient_number] FOREIGN KEY([Patient_Number])
+REFERENCES [dbo].[Patient] ([Patient_Number])
+GO
+
+ALTER TABLE [dbo].[Operation] CHECK CONSTRAINT [fk_patient_number]
+GO
+
+ALTER TABLE [dbo].[Operation]  WITH CHECK ADD  CONSTRAINT [fkk_doctor_number] FOREIGN KEY([Doctor_ID])
+REFERENCES [dbo].[Doctor] ([Doctor_ID])
+GO
+
+ALTER TABLE [dbo].[Operation] CHECK CONSTRAINT [fkk_doctor_number]
+GO
+
+
